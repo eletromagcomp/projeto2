@@ -18,9 +18,13 @@ def epsilon():
 def tamanho_solido():
     return 0.2
 
+def pot_solido():
+    return 100
+
 #%% DEFINIÇÃO DA MALHA E DAS CONDIÇÕES DE CONTORNO
 def condutor(caso):
     n = n_malha()
+    pot_sol = pot_solido()
     condutor_bool = np.zeros((n,n), dtype=bool)
     potencial = np.ones((n,n))
     solido_lado = int(n*tamanho_solido())
@@ -38,7 +42,7 @@ def condutor(caso):
        
         for i in solido:
            condutor_bool[i, solido] = True
-           potencial[i, solido] = 100
+           potencial[i, solido] = pot_sol
     return potencial, condutor_bool
 
 #%% MALHA DOS VIZINHOS
