@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Aug 21 13:39:05 2019
-
 @author: hiro
 """
 import numpy as np
@@ -10,10 +9,10 @@ import matplotlib.pyplot as plt
 
 #%% VARIÁVEIS
 def n_malha():
-    return 100
+    return 200
 
 def epsilon():
-    return 0.001
+    return 0.00001
 
 def tamanho_solido():
     return 0.2
@@ -47,41 +46,31 @@ def condutor(caso):
 
 #%% MALHA DOS VIZINHOS
 def vizinhos(potencial):
-    n = n_malha()
-    #Zeros
-    zero_coluna = np.zeros((n,1)) #Array COLUNA de 0
-    zero_linha = np.zeros((1,n)) #Array LINHA de 0
     #Esquerda
-    potencial_esquerda = np.delete(potencial, n-1, axis=1)
-    potencial_esquerda = np.concatenate((zero_coluna, potencial_esquerda), axis =1)
+    potencial_esquerda = np.roll(potencial, 1, axis=1)
     #Direita
-    potencial_direita = np.delete(potencial, 0, axis=1)
-    potencial_direita = np.concatenate((potencial_direita, zero_coluna), axis =1)
+    potencial_direita = np.roll(potencial, -1, axis=1)
     #Em baixo
-    potencial_baixo = np.delete(potencial, 0, axis=0)
-    potencial_baixo = np.concatenate((potencial_baixo, zero_linha), axis =0)
+    potencial_baixo = np.roll(potencial, -1, axis=0)
     #Em cima
-    potencial_cima = np.delete(potencial, n-1, axis=0)
-    potencial_cima = np.concatenate((zero_linha, potencial_cima), axis =0)
+    potencial_cima = np.roll(potencial, 1, axis=0)
     return potencial_esquerda, potencial_direita, potencial_baixo, potencial_cima
 
 #%% POTENCIAL NUMÉRICO - RESOLUÇÃO DA EQUAÇÃO DE LAPLACE
 def laplace(caso):
     potencial, condutor_bool = condutor(caso)
     eps = epsilon()
-    if caso==0:
-        diferenca_max = eps + 1
-        while diferenca_max>=eps:
-            potencial_esquerda, potencial_direita, potencial_baixo, potencial_cima = vizinhos(potencial)
-            
-            potencial_novo = np.where(condutor_bool == False, 1/4 * (potencial_esquerda + potencial_direita
-                                                                 + potencial_cima + potencial_baixo), potencial)
-            diferenca = np.absolute(potencial_novo - potencial)
-            diferenca_max = np.amax(diferenca)
-            potencial = potencial_novo
+    diferenca_max = eps + 1
+    while diferenca_max>=eps:
+        potencial_esquerda, potencial_direita, potencial_baixo, potencial_cima = vizinhos(potencial)
+        potencial_novo = np.where(condutor_bool == False, 1/4 * (potencial_esquerda + potencial_direita
+                                                             + potencial_cima + potencial_baixo), potencial)
+        diferenca = np.absolute(potencial_novo - potencial)
+        diferenca_max = np.amax(diferenca)
+        potencial = potencial_novo
     return potencial
 
-#%% POTENCIAL ANALÍTICO
+#%% POTENCIAL ANALÍTICO (CASO DA BARRA)
 def potencial_analitico(caso):
     eps = epsilon()
     n = n_malha()
@@ -122,7 +111,7 @@ def plot_numerico(potencial):
 
     return 0
 
-#%% PLOT POTENCIAL ANALÍTICO
+#%% PLOT POTENCIAL ANALÍTICO (CASO DA BARRA)
     
 def plot_analitico(potencial):
     print('Gráfico (Analítico):')
@@ -148,7 +137,3 @@ casos = {'Quadrado': 0}
 caso = casos['Quadrado']
 potencial = laplace(caso)
 plot_numerico(potencial)
-plot_analitico(potencial)
-
-
-
