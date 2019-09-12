@@ -7,6 +7,8 @@ Created on Wed Aug 21 13:39:05 2019
 import numpy as np
 import matplotlib.pyplot as plt
 
+#testando a bagaca no terminal
+
 #%% VARIÁVEIS
 def n_malha():
     return 200
@@ -16,6 +18,15 @@ def epsilon():
 
 def tamanho_solido():
     return 0.2
+    
+def largura_capacitor():
+    return 0.2
+    
+def distancia_placas():
+    return 0.1
+    
+def pot_placa():
+    return 100
 
 def pot_solido():
     return 100
@@ -24,11 +35,19 @@ def pot_solido():
 def condutor(caso):
     n = n_malha()
     pot_sol = pot_solido()
+    V = pot_placa()
     condutor_bool = np.zeros((n,n), dtype=bool)
     potencial = np.ones((n,n))
-    solido_lado = int(n*tamanho_solido())
-    solido = np.arange(int((n - solido_lado)/2), int((n + solido_lado)/2))
+    
+    #com licenca
+    #caso = 1
+    #obrigado
+        
+    #Quadrado
     if caso==0:
+        solido_lado = int(n*tamanho_solido())
+        solido = np.arange(int((n - solido_lado)/2), int((n + solido_lado)/2))
+    
         condutor_bool[0, :] = True
         condutor_bool[n-1, :] = True
         condutor_bool[:, 0] = True
@@ -42,7 +61,47 @@ def condutor(caso):
         for i in solido:
            condutor_bool[i, solido] = True
            potencial[i, solido] = pot_sol
-    return potencial, condutor_bool
+    
+    #circulo
+    if caso==1:
+        raio = n*tamanho_solido()/2 #raio do solido
+        raio_ext = n/2            #raio da superficie
+        solido = np.arange(int(n/2-raio),int(n/2+raio))
+        
+        for i in range(n):
+            for j in range(n):
+                if( (i-n/2)**2+(j-n/2)**2 >= raio_ext**2):
+                    condutor_bool[i,j] = True
+                    potencial[i,j] = 0
+                    
+        for i in solido:
+            for j in solido:
+                if( (i-n/2)**2+(j-n/2)**2 <= raio**2):
+                    condutor_bool[i,j] = True
+                    potencial[i,j] = pot_sol
+                    
+    #capacitor
+    if caso==2:
+        largura = int(n*largura_capacitor())
+        altura = int(n*distancia_placas()/2)
+        placa = np.arange(int((n - largura)/2), int((n + largura)/2))
+    
+        condutor_bool[0, :] = True
+        condutor_bool[n-1, :] = True
+        condutor_bool[:, 0] = True
+        condutor_bool[:, n-1] = True
+
+        potencial[0,:] = 0
+        potencial[n-1,:] = 0
+        potencial[:,0] = 0
+        potencial[:,n-1] = 0
+        
+        condutor_bool[int(n/2+altura), placa] = True
+        condutor_bool[int(n/2-altura), placa] = True
+        potencial[int(n/2+altura), placa] = V
+        potencial[int(n/2-altura), placa] = -1*V
+                    
+    return potencial, condutor_bool                
 
 #%% MALHA DOS VIZINHOS
 def vizinhos(potencial):
@@ -177,12 +236,14 @@ def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
 
 #%% CÁLCULOS
 
-casos = {'Quadrado': 0}
+casos = {'Quadrado': 0, 'Circulo':1}
 caso = casos['Quadrado']
+#excuse me
+caso = 2
+#thank you
 potencial = laplace(caso)
 #plot_numerico(potencial)
 
 plot_campo(potencial, surface_label=True)
-X, Y, Z = potencial_analitico(caso)
-plot_campo(Z, surface_label=True, levels=8,
-           fig1_name='Curva_de_Nivel_barra.png', fig2_name='Campo_barra.png')
+X, Y, Z = potencial_analitico(caso=0)
+plot_campo(Z, surface_label=True, levels=8, fig1_name='Curva_de_Nivel_barra.png', fig2_name='Campo_barra.png')
