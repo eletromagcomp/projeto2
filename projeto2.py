@@ -18,6 +18,15 @@ def epsilon():
 
 def tamanho_solido():
     return 0.2
+    
+def largura_capacitor():
+    return 0.2
+    
+def distancia_placas():
+    return 0.1
+    
+def pot_placa():
+    return 100
 
 def pot_solido():
     return 100
@@ -26,11 +35,12 @@ def pot_solido():
 def condutor(caso):
     n = n_malha()
     pot_sol = pot_solido()
+    V = pot_placa()
     condutor_bool = np.zeros((n,n), dtype=bool)
     potencial = np.ones((n,n))
     
     #com licenca
-    caso = 1
+    #caso = 1
     #obrigado
         
     #Quadrado
@@ -69,6 +79,27 @@ def condutor(caso):
                 if( (i-n/2)**2+(j-n/2)**2 <= raio**2):
                     condutor_bool[i,j] = True
                     potencial[i,j] = pot_sol
+                    
+    #capacitor
+    if caso==2:
+        largura = int(n*largura_capacitor())
+        altura = int(n*distancia_placas()/2)
+        placa = np.arange(int((n - largura)/2), int((n + largura)/2))
+    
+        condutor_bool[0, :] = True
+        condutor_bool[n-1, :] = True
+        condutor_bool[:, 0] = True
+        condutor_bool[:, n-1] = True
+
+        potencial[0,:] = 0
+        potencial[n-1,:] = 0
+        potencial[:,0] = 0
+        potencial[:,n-1] = 0
+        
+        condutor_bool[int(n/2+altura), placa] = True
+        condutor_bool[int(n/2-altura), placa] = True
+        potencial[int(n/2+altura), placa] = V
+        potencial[int(n/2-altura), placa] = -1*V
                     
     return potencial, condutor_bool                
 
@@ -208,7 +239,7 @@ def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
 casos = {'Quadrado': 0, 'Circulo':1}
 caso = casos['Quadrado']
 #excuse me
-caso = 1
+caso = 2
 #thank you
 potencial = laplace(caso)
 #plot_numerico(potencial)
