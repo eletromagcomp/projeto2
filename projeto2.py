@@ -130,10 +130,59 @@ def plot_analitico(potencial):
     
     return 0
 
+#%% CAMPO ELÉRTICO
+def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
+               arrowsize=1.5, surface_label = False,
+               fig1_name='Curva_de_Nivel.png', fig2_name='Campo.png'):
+    
+    #Potencial
+    plt.figure(figsize=(7, 6))
+    plt.pcolor(potencial)
+    plt.colorbar()
+#    plt.show()
+    plt.savefig(fig1_name, dpi=200)
+    
+    #Equipotenciais e linhas de campo
+    x = np.linspace(-1, 1, n_malha())
+    y = np.linspace(-1, 1, n_malha())
+    X, Y = np.meshgrid(x, y)
+    
+    def grad_2d(f, x, y):
+        dx = np.zeros_like(f)
+        dy = np.zeros_like(f)
+        for n in range(1,len(x)-1):
+            for m in range(1,len(y)-1):
+                dx[n,m] = -(f[n+1,m]-f[n-1,m])/(x[n+1]-x[n-1])
+                dy[n,m] = -(f[n,m+1]-f[n,m-1])/(y[m+1]-y[m-1])
+        return dx, dy
+    
+    Ex, Ey = grad_2d(potencial, x, y)
+    
+    fig2, ax2 = plt.subplots()
+    fig2.set_size_inches((7,7))
+
+    CS = ax2.contour(X, Y, potencial, cmap=plt.cm.magma, levels = levels)
+    if surface_label: plt.clabel(CS, inline=1, fontsize=14)
+
+    color = 2 * (np.hypot(Ex, Ey))**(1/2)
+    ax2.streamplot(y, x, Ey, Ex, color=color, linewidth=linewidth, cmap=plt.cm.magma, 
+                  density=density, arrowstyle='->', arrowsize=arrowsize)
+#    ax.set_xlabel('$x$')
+#    ax.set_ylabel('$y$')
+    ax2.set_xlim(-1.05,1.05)
+    ax2.set_ylim(-1.05,1.05)
+    ax2.set_aspect('equal')
+#    plt.show()
+    plt.savefig(fig2_name, dpi=200)
 
 #%% CÁLCULOS
 
 casos = {'Quadrado': 0}
 caso = casos['Quadrado']
 potencial = laplace(caso)
-plot_numerico(potencial)
+#plot_numerico(potencial)
+
+plot_campo(potencial, surface_label=True)
+X, Y, Z = potencial_analitico(caso)
+plot_campo(Z, surface_label=True, levels=8,
+           fig1_name='Curva_de_Nivel_barra.png', fig2_name='Campo_barra.png')
