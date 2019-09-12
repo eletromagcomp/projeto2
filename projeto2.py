@@ -7,6 +7,8 @@ Created on Wed Aug 21 13:39:05 2019
 import numpy as np
 import matplotlib.pyplot as plt
 
+#testando a bagaca no terminal
+
 #%% VARIÁVEIS
 def n_malha():
     return 200
