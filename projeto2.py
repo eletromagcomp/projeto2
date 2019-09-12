@@ -6,6 +6,7 @@ Created on Wed Aug 21 13:39:05 2019
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 #testando a bagaca no terminal
 
@@ -191,15 +192,15 @@ def plot_analitico(potencial):
 
 #%% CAMPO ELÉRTICO
 def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
-               arrowsize=1.5, surface_label = False,
-               fig1_name='Curva_de_Nivel.png', fig2_name='Campo.png'):
+               arrowsize=1.5, surface_label = False, fig='',
+               fig1_name='Mapa_de_Cor.png', fig2_name='Campo.png'):
     
     #Potencial
     plt.figure(figsize=(7, 6))
     plt.pcolor(potencial)
     plt.colorbar()
 #    plt.show()
-    plt.savefig(fig1_name, dpi=200)
+    plt.savefig(fig+fig1_name, dpi=200)
     
     #Equipotenciais e linhas de campo
     x = np.linspace(-1, 1, n_malha())
@@ -207,13 +208,16 @@ def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
     X, Y = np.meshgrid(x, y)
     
     def grad_2d(f, x, y):
-        dx = np.zeros_like(f)
-        dy = np.zeros_like(f)
-        for n in range(1,len(x)-1):
-            for m in range(1,len(y)-1):
-                dx[n,m] = -(f[n+1,m]-f[n-1,m])/(x[n+1]-x[n-1])
-                dy[n,m] = -(f[n,m+1]-f[n,m-1])/(y[m+1]-y[m-1])
-        return dx, dy
+        
+        dx = np.roll(f, -1, axis=0) - np.roll(f, 1, axis=0) 
+        dy = np.roll(f, -1, axis=1) - np.roll(f, 1, axis=1)
+        
+        d = np.ones((n_malha(),n_malha())) * 4/(n_malha()-1)
+
+        gx = -dx/d
+        gy = -dy/d
+        
+        return gx, gy
     
     Ex, Ey = grad_2d(potencial, x, y)
     
@@ -232,7 +236,7 @@ def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
     ax2.set_ylim(-1.05,1.05)
     ax2.set_aspect('equal')
 #    plt.show()
-    plt.savefig(fig2_name, dpi=200)
+    plt.savefig(fig+fig2_name, dpi=200)
 
 #%% CÁLCULOS
 
@@ -242,8 +246,12 @@ caso = casos['Quadrado']
 caso = 2
 #thank you
 potencial = laplace(caso)
+potencial2 = laplace(casos['Circulo'])
+X, Y, Z = potencial_analitico(caso=0)
 #plot_numerico(potencial)
 
-plot_campo(potencial, surface_label=True)
-X, Y, Z = potencial_analitico(caso=0)
-plot_campo(Z, surface_label=True, levels=8, fig1_name='Curva_de_Nivel_barra.png', fig2_name='Campo_barra.png')
+plot_campo(potencial, surface_label=True, density=1, fig='PlacasParalelas_')
+plot_campo(potencial2, surface_label=True, fig='Circulo_')
+
+
+plot_campo(Z, surface_label=True, levels=8, fig='Barra_')
