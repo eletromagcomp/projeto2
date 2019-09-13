@@ -209,26 +209,21 @@ def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
     
     def grad_2d(f, x, y):
         
-        dx = np.roll(f, -1, axis=0) - np.roll(f, 1, axis=0) 
-        dy = np.roll(f, -1, axis=1) - np.roll(f, 1, axis=1)
+        dx = np.roll(f, 1, axis=0) - np.roll(f, -1, axis=0) 
+        dy = np.roll(f, 1, axis=1) - np.roll(f, -1, axis=1)
         
-        d = np.ones((n_malha(),n_malha())) * 4/(n_malha()-1)
-
-        gx = -dx/d
-        gy = -dy/d
-        
-        return gx, gy
+        return dx, dy
     
     Ex, Ey = grad_2d(potencial, x, y)
     
     fig2, ax2 = plt.subplots()
     fig2.set_size_inches((7,7))
 
-    CS = ax2.contour(X, Y, potencial, cmap=plt.cm.magma, levels = levels)
+    CS = ax2.contour(X, Y, potencial, cmap=plt.cm.inferno, levels = levels)
     if surface_label: plt.clabel(CS, inline=1, fontsize=14)
 
     color = 2 * (np.hypot(Ex, Ey))**(1/2)
-    ax2.streamplot(y, x, Ey, Ex, color=color, linewidth=linewidth, cmap=plt.cm.magma, 
+    ax2.streamplot(y, x, Ey, Ex, color=color, linewidth=linewidth, cmap=plt.cm.inferno, 
                   density=density, arrowstyle='->', arrowsize=arrowsize)
 #    ax.set_xlabel('$x$')
 #    ax.set_ylabel('$y$')
