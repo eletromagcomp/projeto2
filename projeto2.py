@@ -200,7 +200,7 @@ def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
     plt.pcolor(potencial)
     plt.colorbar()
 #    plt.show()
-    plt.savefig(fig+fig1_name, dpi=200)
+    plt.savefig(fig+fig1_name, dpi=200, bbox_inches='tight')
     
     #Equipotenciais e linhas de campo
     x = np.linspace(-1, 1, n_malha())
@@ -216,22 +216,22 @@ def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
     
     Ex, Ey = grad_2d(potencial, x, y)
     
-    fig2, ax2 = plt.subplots()
-    fig2.set_size_inches((7,7))
+    figure, ax = plt.subplots()
+    figure.set_size_inches((7,7))
 
-    CS = ax2.contour(X, Y, potencial, cmap=plt.cm.inferno, levels = levels)
-    if surface_label: plt.clabel(CS, inline=1, fontsize=14)
+    CS = ax.contour(X, Y, potencial, cmap=plt.cm.inferno, levels = levels)
+    if surface_label: plt.clabel(CS, fontsize=14)
 
     color = 2 * (np.hypot(Ex, Ey))**(1/2)
-    ax2.streamplot(y, x, Ey, Ex, color=color, linewidth=linewidth, cmap=plt.cm.inferno, 
+    ax.streamplot(y, x, Ey, Ex, color=color, linewidth=linewidth, cmap=plt.cm.inferno, 
                   density=density, arrowstyle='->', arrowsize=arrowsize)
 #    ax.set_xlabel('$x$')
 #    ax.set_ylabel('$y$')
-    ax2.set_xlim(-1.05,1.05)
-    ax2.set_ylim(-1.05,1.05)
-    ax2.set_aspect('equal')
+    ax.set_xlim(-1.05,1.05)
+    ax.set_ylim(-1.05,1.05)
+    ax.set_aspect('equal')
 #    plt.show()
-    plt.savefig(fig+fig2_name, dpi=200)
+    plt.savefig(fig+fig2_name, dpi=200, bbox_inches='tight')
 
 #%% CÁLCULOS
 
@@ -246,7 +246,7 @@ X, Y, Z = potencial_analitico(caso=0)
 #plot_numerico(potencial)
 
 plot_campo(potencial, surface_label=True, density=1, fig='PlacasParalelas_')
-plot_campo(potencial2, surface_label=True, fig='Circulo_')
-
-
-plot_campo(Z, surface_label=True, levels=8, fig='Barra_')
+#plot_campo(potencial2, surface_label=True, fig='Circulo_')
+#
+#
+#plot_campo(Z, surface_label=True, levels=8, fig='Barra_')
