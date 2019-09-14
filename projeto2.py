@@ -149,6 +149,81 @@ def potencial_analitico(caso):
             i = i +1
     return X, Y,Z
 
+#%% POTENCIAL EM COORDENADAS POLARES
+def potencial_polar(caso=1):
+    condutor = np.ones(int(n_malha()*tamanho_solido())) * pot_solido()
+    potencial = np.append(condutor, np.zeros(int(n_malha()*(1-tamanho_solido())-1)))
+    potencial = np.append(potencial, 0)
+    
+    eps = epsilon()
+    diferenca_max = eps + 1
+    potencial_novo = np.copy(potencial)
+    
+    if caso == 0: # Gauss-Seidel
+        while diferenca_max >= eps:
+            for i in range(int(n_malha()*tamanho_solido()), int(n_malha())-1):
+                potencial_novo[i] = ((i-1)*potencial_novo[i-1] + (i+1)*potencial_novo[i+1]) / (2*i)
+            
+            diferenca = np.absolute(potencial_novo - potencial)
+            diferenca_max = np.max(diferenca)
+            potencial = np.copy(potencial_novo)
+            
+    if caso == 1: # Busca direta
+        potencial_novo[int(n_malha()*tamanho_solido())] = 0.9*pot_solido() #chute
+        a = 0.1*pot_solido()
+        
+        while diferenca_max >= eps:
+            for i in range(int(n_malha()*tamanho_solido()), int(n_malha())-1):
+                potencial_novo[i+1] = (2*i*potencial_novo[i] - (i-1)*potencial_novo[i-1]) / (i+1)
+            
+            diferenca_max = np.absolute(potencial_novo[int(n_malha()-1)])   
+            if potencial_novo[int(n_malha()-1)] < 0:
+                a = a/2
+                potencial_novo[int(n_malha()*tamanho_solido())] += a
+            elif potencial_novo[int(n_malha()-1)] > 0:
+                a = a/2
+                potencial_novo[int(n_malha()*tamanho_solido())] += -a
+            else:         
+                diferenca_max = 0
+    
+    return potencial_novo
+
+            
+#%% PLOT POLAR
+def plot_polar(potencial):
+    t = np.linspace(0, 2*np.pi, n_malha())
+    r = np.linspace(0, 1, n_malha())
+    
+    a, potencial_2d = np.meshgrid(t, potencial)
+    
+    fig, ax = plt.subplots(1, subplot_kw=dict(projection='polar'))
+    fig.set_size_inches((7,6))
+    #ax.grid(False)
+    plot = ax.contourf(t, r, potencial_2d, 100, cmap=plt.cm.viridis)
+    cbar = plt.colorbar(plot, ax=ax)
+    #plt.show()
+    plt.savefig('Circulo_Mapa_de_Cor_Polar.png', dpi=200, bbox_inches='tight')
+    
+    Er = np.zeros(n_malha())
+    for i in range(int(n_malha()*tamanho_solido()), int(n_malha())-1):
+        Er[i] = potencial[i-1] - potencial[i]
+    
+    fig2, ax2 = plt.subplots(1, subplot_kw=dict(projection='polar'))
+    fig2.set_size_inches((7,6))
+    
+    T, R = np.meshgrid(t, r)
+    
+    Er, t = np.meshgrid(Er, t)
+    a = np.zeros_like(Er)
+    CS = ax2.contour(T, R, potencial_2d, cmap=plt.cm.inferno, levels = 10)
+    
+    plot = ax2.streamplot(t.transpose(), R, a.transpose(), Er.transpose(), linewidth=1, cmap=plt.cm.inferno, 
+                      density=1, arrowstyle='->', arrowsize=1.5)
+    #ax2.set_xlim(0, 2*np.pi)
+    ax2.set_ylim(0, 1)
+    #plt.show()
+    plt.savefig('Circulo_Campo_Polar.png', dpi=200, bbox_inches='tight')
+
 #%% PLOT POTENCIAL NUMÉRICO
 
 def plot_numerico(potencial):
@@ -207,14 +282,14 @@ def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
     y = np.linspace(-1, 1, n_malha())
     X, Y = np.meshgrid(x, y)
     
-    def grad_2d(f, x, y):
+    def grad_2d(f):
         
         dx = np.roll(f, 1, axis=0) - np.roll(f, -1, axis=0) 
         dy = np.roll(f, 1, axis=1) - np.roll(f, -1, axis=1)
         
         return dx, dy
     
-    Ex, Ey = grad_2d(potencial, x, y)
+    Ex, Ey = grad_2d(potencial)
     
     figure, ax = plt.subplots()
     figure.set_size_inches((7,7))
@@ -250,3 +325,4 @@ plot_campo(potencial, surface_label=True, density=1, fig='PlacasParalelas_')
 #
 #
 #plot_campo(Z, surface_label=True, levels=8, fig='Barra_')
+plot_polar(potencial_polar(caso=1))
