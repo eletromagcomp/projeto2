@@ -32,6 +32,9 @@ def pot_placa():
 def pot_solido():
     return 100
 
+def n_malha_random()
+    return 40
+
 def caminhantes_():
     return 10
 
