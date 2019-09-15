@@ -32,6 +32,9 @@ def pot_placa():
 def pot_solido():
     return 100
 
+def caminhantes_():
+    return 10
+
 #%% DEFINIÇÃO DA MALHA E DAS CONDIÇÕES DE CONTORNO
 def condutor(caso):
     n = n_malha()
@@ -291,7 +294,33 @@ def plot_polar(potencial, levels=8, linewidth=1, density=0.5,
     ax.spines['polar'].set_visible(False)
     #plt.show()
     plt.savefig(fig+fig2_name, dpi=200, bbox_inches='tight')
+    
+#%% RANDOM WALK
 
+def random_walk(caso):
+    #Passando informações de contorno
+    potencial, extremidades = condutor(caso)
+    n = n_malha()
+    n_walkers = caminhantes_()
+    #Andando:
+    variacoes = [[1,0],[-1,0],[0,1],[0,-1]]
+    for i in range(int(n/4),int(3*n/4+1)):
+        for j in range(int(n/4),int(3*n/4+1)):
+            p = 0
+            potencial_b = np.zeros(1)
+            while p < n_walkers:    
+                lugar = np.array([i,j])
+                if extremidades[lugar[0],lugar[1]] != True:
+                    while extremidades[lugar[0],lugar[1]] != True:
+                        lugar = lugar + variacoes[int(np.random.randint(4, size=1))]    
+                    potencial_b = np.append(potencial_b, potencial[lugar[0]][lugar[1]])
+                if extremidades[lugar[0],lugar[1]] == True:
+                    potencial_b = np.append(potencial_b, potencial[lugar[0]][lugar[1]])
+                p = p + 1
+            potencial[i,j] = (np.sum(potencial_b))/n_walkers
+        print('Acabou linha ' + str(i))
+    return potencial
+            
 #%% CÁLCULOS
 
 #Coordenadas cartesianas
