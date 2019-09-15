@@ -12,7 +12,7 @@ import time
 
 #%% VARIÁVEIS
 def n_malha():
-    return 100
+    return 200
 
 def epsilon():
     return 0.00001
@@ -212,9 +212,9 @@ def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
 
 #%% POTENCIAL EM COORDENADAS POLARES
 def potencial_polar(caso=1):
-    
-    tamanho_condutor = int(n_malha()*tamanho_solido())
-    resto_da_malha = int(n_malha()*(1-tamanho_solido()))
+    n = n_malha()/2
+    tamanho_condutor = int(n*tamanho_solido())
+    resto_da_malha = int(n*(1-tamanho_solido()))
     
     potencial = np.append( pot_solido() * np.ones(tamanho_condutor), np.zeros(resto_da_malha) )
     
@@ -224,7 +224,7 @@ def potencial_polar(caso=1):
     if caso == 0: # Gauss-Seidel
         potencial_novo = np.copy(potencial)
         while diferenca_max >= eps:
-            for i in range(tamanho_condutor, int(n_malha())-1):
+            for i in range(tamanho_condutor, int(n)-1):
                 potencial_novo[i] = ((i-1)*potencial_novo[i-1] + (i+1)*potencial_novo[i+1]) / (2*i)
             
             diferenca_max = np.max( np.absolute(potencial_novo - potencial) )
@@ -235,14 +235,14 @@ def potencial_polar(caso=1):
         passo = 0.1*pot_solido()
         
         while diferenca_max >= eps:
-            for i in range(tamanho_condutor, int(n_malha())-1):
+            for i in range(tamanho_condutor, int(n)-1):
                 potencial[i+1] = (2*i*potencial[i] - (i-1)*potencial[i-1]) / (i+1)
             
-            diferenca_max = np.absolute(potencial[int(n_malha()-1)])   
-            if potencial[int(n_malha()-1)] < 0:
+            diferenca_max = np.absolute(potencial[int(n-1)])   
+            if potencial[int(n-1)] < 0:
                 passo = passo/2
                 potencial[tamanho_condutor] += passo
-            elif potencial[int(n_malha()-1)] > 0:
+            elif potencial[int(n-1)] > 0:
                 passo = passo/2
                 potencial[tamanho_condutor] += -passo
             else:         
@@ -335,4 +335,5 @@ if caso==3: #Analítico
     plot_campo(potencial, surface_label=True, density=1, fig=key + '_analitico_')
     
 #Coordenadas polares
-plot_polar(potencial_polar(caso=1))
+potencial_num = potencial_polar(caso=1)
+potencial_anal = potencial_circulo()
