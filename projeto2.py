@@ -12,7 +12,7 @@ import time
 
 #%% VARIÁVEIS
 def n_malha():
-    return 200
+    return 100
 
 def epsilon():
     return 0.00001
@@ -31,9 +31,6 @@ def pot_placa():
 
 def pot_solido():
     return 100
-
-def n_malha_random()
-    return 40
 
 def caminhantes_():
     return 10
@@ -130,7 +127,7 @@ def vizinhos(potencial):
     return potencial_esquerda, potencial_direita, potencial_baixo, potencial_cima
 
 #%% POTENCIAL NUMÉRICO - RESOLUÇÃO DA EQUAÇÃO DE LAPLACE
-def laplace(caso):
+def diferenca_finita(caso):
     potencial, condutor_bool = condutor(caso)
     eps = epsilon()
     diferenca_max = eps + 1
@@ -144,7 +141,7 @@ def laplace(caso):
     return potencial
 
 #%% POTENCIAL ANALÍTICO (BARRA)
-def potencial_analitico(caso):
+def potencial_analitico_barra(caso):
     eps = epsilon()
     n = n_malha()
     x = np.arange(n)
@@ -164,17 +161,17 @@ def potencial_analitico(caso):
     return potencial
 
 #%% POTENCIAL ANALÍTICO (circulo)
-def potencial_circulo():
+def potencial_analitico_circulo():
     radius = int(n_malha()/2)
-    condutor = int(n_malha()*tamanho_solido()/2)
+    condutor = int(n_malha()*tamanho_solido()/2)-1
     
     potencial = np.zeros(radius)
     
     for i in range(condutor):
         potencial[i] = pot_solido()
     for i in range(condutor,radius):
-        potencial[i] = pot_solido()*np.log(radius/condutor)*np.log(i/radius)
-        return potencial
+        potencial[i] = pot_solido()*np.log(i/radius)/np.log(condutor/radius)
+    return potencial
 
 #%% PLOT - POTENCIAL, CAMPO ELÉTRICO E EQUIPOTENCIAIS
 def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
@@ -228,7 +225,7 @@ def potencial_polar(caso=1):
         potencial_novo = np.copy(potencial)
         while diferenca_max >= eps:
             for i in range(tamanho_condutor, int(n)-1):
-                potencial_novo[i] = ((i-1)*potencial_novo[i-1] + (i+1)*potencial_novo[i+1]) / (2*i)
+                potencial_novo[i] = ((i-1/2)*potencial_novo[i-1] + (i+1/2)*potencial_novo[i+1]) / (2*i)
             
             diferenca_max = np.max( np.absolute(potencial_novo - potencial) )
             potencial = np.copy(potencial_novo)
@@ -239,7 +236,7 @@ def potencial_polar(caso=1):
         
         while diferenca_max >= eps:
             for i in range(tamanho_condutor, int(n)-1):
-                potencial[i+1] = (2*i*potencial[i] - (i-1)*potencial[i-1]) / (i+1)
+                potencial[i+1] = (2*i*potencial[i] - (i-1/2)*potencial[i-1]) / (i+1/2)
             
             diferenca_max = np.absolute(potencial[int(n-1)])   
             if potencial[int(n-1)] < 0:
@@ -259,8 +256,8 @@ def plot_polar(potencial, levels=8, linewidth=1, density=0.5,
                arrowsize=1.5, surface_label = True, fig='',
                fig1_name='Mapa_de_Cor_Polar.png', fig2_name='Campo_Polar.png'):
     #Variáveis theta e raio
-    t = np.linspace(0, 2*np.pi, n_malha())
-    r = np.linspace(0, 1, n_malha())
+    t = np.linspace(0, 2*np.pi, n_malha()/2)
+    r = np.linspace(0, 1, n_malha()/2)
     
     T, potencial_2d = np.meshgrid(t, potencial)
     
@@ -327,16 +324,45 @@ def random_walk(caso):
 #%% CÁLCULOS
 
 #Coordenadas cartesianas
-key = 'quadrado'
 casos = {'quadrado': 0, 'circulo':1, 'capacitor': 2, 'barra': 3}
+key = 'quadrado'
 caso = casos[key]
-potencial = laplace(caso)
+
+start = time.time()
+potencial = diferenca_finita(caso)
+end = time.time()
+print(end-start)
+
+#potencial_1d = potencial[100,100:199]
 plot_campo(potencial, surface_label=True, density=1, fig=key + '_')
 
-if caso==3: #Analítico
-    potencial = potencial_analitico(caso)
-    plot_campo(potencial, surface_label=True, density=1, fig=key + '_analitico_')
+#if caso==3: #Analítico
+#    potencial = potencial_analitico_barra(caso)
+#    plot_campo(potencial, surface_label=True, density=1, fig=key + '_analitico_')
     
-#Coordenadas polares
-potencial_num = potencial_polar(caso=1)
-potencial_anal = potencial_circulo()
+##Coordenadas polares
+#potencial_unido = np.zeros((int(n_malha()/2),4))
+#potencial_unido[:,3] = potencial_polar(caso=1)
+#potencial_unido[:,2] = potencial_polar(caso=0)
+#potencial_unido[:,1] = np.append(potencial_1d, 0)
+#potencial_unido[:,0] = potencial_analitico_circulo()
+#
+#plt.figure(figsize=(7, 6))
+#plt.plot(potencial_unido, )
+#plt.xlim(80,100)
+#plt.ylim(0,20)
+#plt.legend(['Analítico', 'Cartesiano', 'Polar - Diferença Direta', 'Polar - Busca Direta de Raízes'])
+##plt.show()
+#plt.savefig('difzoom.png', dpi=200, bbox_inches='tight')
+#
+#plt.figure(figsize=(7, 6))
+#plt.plot(potencial_unido, )
+##plt.xlim(80,100)
+##plt.ylim(0,20)
+#plt.legend(['Analítico', 'Cartesiano', 'Polar - Diferença Direta', 'Polar - Busca Direta de Raízes'])
+##plt.show()
+#plt.savefig('dif.png', dpi=200, bbox_inches='tight')
+#
+##plot_polar(potencial_unido[:,0], fig1_name='num_busca_direta1.png' , fig2_name='numbusca_direta2.png')
+##plot_polar(potencial_unido[:,1], fig1_name='numGS1.png' , fig2_name='numGS2.png')
+##plot_polar(potencial_unido[:,3], fig1_name='anal.png' , fig2_name='anal2.png')
