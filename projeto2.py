@@ -32,6 +32,9 @@ def pot_placa():
 def pot_solido():
     return 100
 
+def n_malha_random()
+    return 40
+
 def caminhantes_():
     return 10
 
@@ -300,7 +303,7 @@ def plot_polar(potencial, levels=8, linewidth=1, density=0.5,
 def random_walk(caso):
     #Passando informações de contorno
     potencial, extremidades = condutor(caso)
-    n = n_malha()
+    n = n_malha_random()
     n_walkers = caminhantes_()
     #Andando:
     variacoes = [[1,0],[-1,0],[0,1],[0,-1]]
