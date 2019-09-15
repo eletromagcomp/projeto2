@@ -137,7 +137,7 @@ def laplace(caso):
         potencial = potencial_novo
     return potencial
 
-#%% POTENCIAL ANALÍTICO (CASO CÍRCULO E BARRA)
+#%% POTENCIAL ANALÍTICO (BARRA)
 def potencial_analitico(caso):
     eps = epsilon()
     n = n_malha()
@@ -156,6 +156,19 @@ def potencial_analitico(caso):
             potencial = potencial_novo
             i = i +1
     return potencial
+
+#%% POTENCIAL ANALÍTICO (circulo)
+def potencial_circulo():
+    radius = int(n_malha()/2)
+    condutor = int(n_malha()*tamanho_solido()/2)
+    
+    potencial = np.zeros(radius)
+    
+    for i in range(condutor):
+        potencial[i] = pot_solido()
+    for i in range(condutor,radius):
+        potencial[i] = pot_solido()*np.log(radius/condutor)*np.log(i/radius)
+        return potencial
 
 #%% PLOT - POTENCIAL, CAMPO ELÉTRICO E EQUIPOTENCIAIS
 def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
