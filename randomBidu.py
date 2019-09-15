@@ -41,8 +41,6 @@ def contorno():
     extremidades[tamanho.astype(int),int(n/2 + 0.05*n)] = True
     extremidades[tamanho.astype(int),int(n/2 - 0.05*n)] = True
     
-    print(potencial, extremidades)
-    
     return potencial, extremidades
 
 #%% CÁLCULO DO POTENCIAL
@@ -56,11 +54,13 @@ def potencial():
     #Andando:
     
     variacoes = [[1,0],[-1,0],[0,1],[0,-1]]
-    
+    m = 0
     for i in range(int(n/4),int(3*n/4+1)):
         for j in range(int(n/4),int(3*n/4+1)):
             
             p = 0
+            print(m)
+            m = m + 1
             
             potencial_b = np.zeros(1)
             
@@ -74,7 +74,7 @@ def potencial():
             
                         lugar = lugar + variacoes[int(np.random.randint(4, size=1))]
                         
-                    potencial_b = np.append(potencial_b, potencial[lugar[0]][lugar[1]])            
+                    potencial_b = np.append(potencial_b, potencial[lugar[0]][lugar[1]])
                 
                 if extremidades[lugar[0],lugar[1]] == True:
                 
