@@ -74,14 +74,11 @@ def potencial():
             
                         lugar = lugar + variacoes[int(np.random.randint(4, size=1))]
                         
-                    potencial_b = np.append(potencial_b, potencial[lugar[0]][lugar[1]])
-                    #potencial_b = potencial_b + float(potencial[lugar[0]][lugar[1]])
-                    print(potencial_b)
+                    potencial_b = np.append(potencial_b, potencial[lugar[0]][lugar[1]])            
                 
                 if extremidades[lugar[0],lugar[1]] == True:
                 
                     potencial_b = np.append(potencial_b, potencial[lugar[0]][lugar[1]])
-                    #potencial_b = potencial_b + float(potencial[lugar[0]][lugar[1]])
                 
                 p = p + 1
             
