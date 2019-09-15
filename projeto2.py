@@ -12,7 +12,7 @@ import time
 
 #%% VARIÁVEIS
 def n_malha():
-    return 200
+    return 100
 
 def epsilon():
     return 0.00001
@@ -40,10 +40,6 @@ def condutor(caso):
     condutor_bool = np.zeros((n,n), dtype=bool)
     potencial = np.ones((n,n))
     
-    #com licenca
-    #caso = 1
-    #obrigado
-        
     #Quadrado
     if caso==0:
         solido_lado = int(n*tamanho_solido())
@@ -63,7 +59,7 @@ def condutor(caso):
            condutor_bool[i, solido] = True
            potencial[i, solido] = pot_sol
     
-    #circulo
+    #Círculo
     if caso==1:
         raio = n*tamanho_solido()/2 #raio do solido
         raio_ext = n/2            #raio da superficie
@@ -81,7 +77,7 @@ def condutor(caso):
                     condutor_bool[i,j] = True
                     potencial[i,j] = pot_sol
                     
-    #capacitor
+    #Capacitor
     if caso==2:
         largura = int(n*largura_capacitor())
         altura = int(n*distancia_placas()/2)
@@ -101,8 +97,19 @@ def condutor(caso):
         condutor_bool[int(n/2-altura), placa] = True
         potencial[int(n/2+altura), placa] = V
         potencial[int(n/2-altura), placa] = -1*V
-                    
-    return potencial, condutor_bool                
+    
+    #Barra
+    if caso==3:
+        condutor_bool[0, :] = True
+        condutor_bool[n-1, :] = True
+        condutor_bool[:, 0] = True
+        condutor_bool[:, n-1] = True
+        
+        potencial[0,:] = 0
+        potencial[n-1,:] = pot_sol
+        potencial[:,0] = 0
+        potencial[:,n-1] = 0
+    return potencial, condutor_bool  
 
 #%% MALHA DOS VIZINHOS
 def vizinhos(potencial):
@@ -130,7 +137,7 @@ def laplace(caso):
         potencial = potencial_novo
     return potencial
 
-#%% POTENCIAL ANALÍTICO (CASO DA BARRA)
+#%% POTENCIAL ANALÍTICO (CASO CÍRCULO E BARRA)
 def potencial_analitico(caso):
     eps = epsilon()
     n = n_malha()
@@ -138,16 +145,54 @@ def potencial_analitico(caso):
     y = np.arange(n)
     X, Y = np.meshgrid(x,y)
     dif_max = eps +1
-    i = 1
-    Z = np.zeros(X.shape)
-    if caso==0:
+    potencial = np.zeros(X.shape)
+    if caso==3:
+        pot_sol = pot_solido()
+        i = 1
         while dif_max>=eps/1000:
-            Z_novo = 400/((2*i - 1)*np.pi) *np.sin(((2*i - 1) *np.pi * X)/n)*(np.exp((2*i -1)*np.pi*(Y/n - 1)) + np.exp(-(2*i -1)*np.pi*(Y/n + 1)))/(1- np.exp(-2**(2*n-1)*np.pi)) + Z
-            dif = np.absolute(Z_novo - Z)
+            potencial_novo = 4*pot_sol/((2*i - 1)*np.pi) *np.sin(((2*i - 1) *np.pi * X)/n)*(np.exp((2*i -1)*np.pi*(Y/n - 1)) - np.exp(-(2*i -1)*np.pi*(Y/n + 1)))/(1- np.exp(-2**(2*n-1)*np.pi)) + potencial
+            dif = np.absolute(potencial_novo - potencial)
             dif_max = np.amax(dif)
-            Z = Z_novo
+            potencial = potencial_novo
             i = i +1
-    return X, Y,Z
+    return potencial
+
+#%% PLOT - POTENCIAL, CAMPO ELÉTRICO E EQUIPOTENCIAIS
+def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
+               arrowsize=1.5, surface_label = False, fig='',
+               fig1_name='Mapa_de_Cor.png', fig2_name='Campo.png'):
+    
+    #Potencial
+    plt.figure(figsize=(7, 6))
+    plt.pcolor(potencial)
+    plt.colorbar()
+#    plt.show()
+    plt.savefig(fig+fig1_name, dpi=200, bbox_inches='tight')
+    
+    #Equipotenciais e linhas de campo
+    x = np.linspace(-1, 1, n_malha())
+    y = np.linspace(-1, 1, n_malha())
+    X, Y = np.meshgrid(x, y)
+        
+    Ex = np.roll(potencial, 1, axis=0) - np.roll(potencial, -1, axis=0) 
+    Ey = np.roll(potencial, 1, axis=1) - np.roll(potencial, -1, axis=1)
+    
+    figure, ax = plt.subplots()
+    figure.set_size_inches((7,7))
+
+    CS = ax.contour(X, Y, potencial, cmap=plt.cm.inferno, levels = levels)
+    if surface_label: plt.clabel(CS, fontsize=14)
+
+    color = 2 * (np.hypot(Ex, Ey))**(1/2)
+    ax.streamplot(y, x, Ey, Ex, color=color, linewidth=linewidth, cmap=plt.cm.inferno, 
+                  density=density, arrowstyle='->', arrowsize=arrowsize)
+#    ax.set_xlabel('$x$')
+#    ax.set_ylabel('$y$')
+    ax.set_xlim(-1.05,1.05)
+    ax.set_ylim(-1.05,1.05)
+    ax.set_aspect('equal')
+#    plt.show()
+    plt.savefig(fig+fig2_name, dpi=200, bbox_inches='tight')
 
 #%% POTENCIAL EM COORDENADAS POLARES
 def potencial_polar(caso=1):
@@ -234,99 +279,18 @@ def plot_polar(potencial, levels=8, linewidth=1, density=0.5,
     #plt.show()
     plt.savefig(fig+fig2_name, dpi=200, bbox_inches='tight')
 
-#%% PLOT POTENCIAL NUMÉRICO
-
-def plot_numerico(potencial):
-    #Potencial
-    print('Gráfico (Numérico):')
-    plt.figure()
-    potencial = np.transpose(potencial)
-    plt.pcolor(potencial)
-    plt.colorbar()
-    plt.show()
-    
-    #Equipotenciais
-    x = np.arange(n_malha())
-    y = np.arange(n_malha())
-    X, Y = np.meshgrid(x,y)
-    plt.figure()
-    CS = plt.contour(X, Y, potencial)
-    plt.clabel(CS, inline=1, fontsize=10)
-    plt.show()  
-
-    return 0
-
-#%% PLOT POTENCIAL ANALÍTICO (CASO DA BARRA)
-    
-def plot_analitico(potencial):
-    print('Gráfico (Analítico):')
-    #Potencial
-    X, Y,Z = potencial_analitico(caso)
-    plt.figure()
-    plt.pcolor(Z)
-    plt.colorbar()
-    plt.show()
-    
-    #Equipotenciais
-    plt.figure()
-    CS = plt.contour(X, Y, Z)
-    plt.clabel(CS, inline=1, fontsize=10)
-    plt.show()  
-    
-    return 0
-
-#%% CAMPO ELÉRTICO
-def plot_campo(potencial, levels=10, linewidth=1, density=0.5,
-               arrowsize=1.5, surface_label = False, fig='',
-               fig1_name='Mapa_de_Cor.png', fig2_name='Campo.png'):
-    
-    #Potencial
-    plt.figure(figsize=(7, 6))
-    plt.pcolor(potencial)
-    plt.colorbar()
-#    plt.show()
-    plt.savefig(fig+fig1_name, dpi=200, bbox_inches='tight')
-    
-    #Equipotenciais e linhas de campo
-    x = np.linspace(-1, 1, n_malha())
-    y = np.linspace(-1, 1, n_malha())
-    X, Y = np.meshgrid(x, y)
-        
-    Ex = np.roll(potencial, 1, axis=0) - np.roll(potencial, -1, axis=0) 
-    Ey = np.roll(potencial, 1, axis=1) - np.roll(potencial, -1, axis=1)
-    
-    figure, ax = plt.subplots()
-    figure.set_size_inches((7,7))
-
-    CS = ax.contour(X, Y, potencial, cmap=plt.cm.inferno, levels = levels)
-    if surface_label: plt.clabel(CS, fontsize=14)
-
-    color = 2 * (np.hypot(Ex, Ey))**(1/2)
-    ax.streamplot(y, x, Ey, Ex, color=color, linewidth=linewidth, cmap=plt.cm.inferno, 
-                  density=density, arrowstyle='->', arrowsize=arrowsize)
-#    ax.set_xlabel('$x$')
-#    ax.set_ylabel('$y$')
-    ax.set_xlim(-1.05,1.05)
-    ax.set_ylim(-1.05,1.05)
-    ax.set_aspect('equal')
-#    plt.show()
-    plt.savefig(fig+fig2_name, dpi=200, bbox_inches='tight')
-
 #%% CÁLCULOS
 
-casos = {'Quadrado': 0, 'Circulo':1}
-caso = casos['Quadrado']
-#excuse me
-caso = 2
-#thank you
+#Coordenadas cartesianas
+key = 'quadrado'
+casos = {'quadrado': 0, 'circulo':1, 'capacitor': 2, 'barra': 3}
+caso = casos[key]
 potencial = laplace(caso)
-potencial2 = laplace(casos['Circulo'])
-X, Y, Z = potencial_analitico(caso=0)
-#plot_numerico(potencial)
+plot_campo(potencial, surface_label=True, density=1, fig=key + '_')
 
-plot_campo(potencial, surface_label=True, density=1, fig='PlacasParalelas_')
-#plot_campo(potencial2, surface_label=True, fig='Circulo_')
-#
-#
-#plot_campo(Z, surface_label=True, levels=8, fig='Barra_')
+if caso==3: #Analítico
+    potencial = potencial_analitico(caso)
+    plot_campo(potencial, surface_label=True, density=1, fig=key + '_analitico_')
+    
+#Coordenadas polares
 plot_polar(potencial_polar(caso=1))
